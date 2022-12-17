@@ -1,7 +1,11 @@
 // src/mocks/handlers.js
 import { rest } from "msw";
+import { TODOS } from "./fixtures/fixture";
 
 export const handlers = [
+  rest.get("/todos", (req, res, ctx) => {
+    return res(ctx.json(TODOS));
+  }),
   rest.post("/login", (req, res, ctx) => {
     // Persist user's authentication in the session
     sessionStorage.setItem("is-authenticated", "true");

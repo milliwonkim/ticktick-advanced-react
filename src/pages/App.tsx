@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { v4 } from "uuid";
 import styled from "@emotion/styled";
-
 import "../styles/App.css";
 import CheckIcon from "../assets/CheckIcon";
-
-const TODOS = [
-  { id: v4(), todo: "개발하기", completed: false },
-  { id: v4(), todo: "개발하기", completed: false },
-  { id: v4(), todo: "개발하기", completed: false },
-  { id: v4(), todo: "개발하기", completed: false },
-];
+import { css } from "@emotion/react";
+import { api } from "../api/api";
+import dayjs from "dayjs";
 
 function App() {
   const [todos, setTodos] = useState<
@@ -21,8 +15,18 @@ function App() {
     }[]
   >([]);
 
+  const getTodos = async () => {
+    try {
+      const res = await api.get("/todos");
+      setTodos(res.data);
+    } catch (err) {
+      console.error("getTodos error", err);
+      setTodos([]);
+    }
+  };
+
   useEffect(() => {
-    setTodos(TODOS);
+    getTodos();
   }, []);
 
   const handleClick = (id: string, isCompleted: boolean) => {
@@ -53,25 +57,26 @@ function App() {
     setTodos(newClicks);
   };
 
-  console.log(todos);
-
   return (
     <Container>
+      {dayjs().format("YYYY-MM-DD HH:mm")}
       {todos.map((el, i) => {
         return (
-          <Box key={i}>
+          <Box onClick={() => handleClick(el.id, el.completed)} key={i}>
             <Label>
               <div>
-                <Checkbox
-                  onClick={() => handleClick(el.id, el.completed)}
-                  id={el.id}
-                >
+                <Checkbox isCompleted={el.completed} id={el.id}>
                   {el.completed ? (
                     <CheckIcon fill="#ffffff" width="16px" height="16px" />
                   ) : null}
                 </Checkbox>
               </div>
-              <Input id={el.id} value={el.todo} onChange={handleChange} />
+              <Input
+                id={el.id}
+                value={el.todo}
+                onClick={(e) => e.stopPropagation()}
+                onChange={handleChange}
+              />
             </Label>
           </Box>
         );
@@ -88,14 +93,31 @@ const Container = styled.div`
   gap: 8px;
 `;
 
-const Box = styled.div``;
+const Box = styled.div`
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  &:hover {
+    background: #e2e2e2;
+  }
+`;
 
-const Checkbox = styled.div`
+interface CheckboxProps {
+  isCompleted: boolean;
+}
+
+const Checkbox = styled.div<CheckboxProps>`
   width: 16px;
   height: 16px;
-  border: 1px solid #455d7a;
   border-radius: 4px;
-  background: #455d7a;
+  ${({ isCompleted }) => {
+    if (isCompleted) {
+      return css`
+        background: #455d7a;
+      `;
+    }
+  }}
+  border: 1px solid #455d7a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -109,6 +131,7 @@ const Label = styled.div`
 
 const Input = styled.input`
   border: transparent;
+  background: transparent;
   &:focus {
     outline: none;
   }

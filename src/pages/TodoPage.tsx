@@ -15,23 +15,69 @@ var day = d.getDay();
 
 var weekOfMonth = Math.ceil((date - 1 - day) / 7);
 
+export const MONDAY = "MONDAY";
+export const TUESDAY = "TUESDAY";
+export const WEDNESDAY = "WEDNESDAY";
+export const THURSDAY = "THURSDAY";
+export const FRIDAY = "FRIDAY";
+export const SATURDAY = "SATURDAY";
+export const SUNDAY = "SUNDAY";
+
+export const FORMAT = {
+  [YEAR]: "YYYY년",
+  [MONTH]: "YYYY년 M월",
+  [DAY]: "YYYY년 M월 D일",
+};
+
 function TodoPage({ type, isStartFromSunday = true }: TodoPageProps) {
   const [todos, setTodos] = useState<TodoProps[]>([]);
   const TITLE: {
     [key: string]: string;
   } = {
-    [YEAR]: `${dayjs().format("YYYY년")}`,
-    [MONTH]: `${dayjs().format("YYYY년 M월")}`,
-    [WEEK]: `${dayjs().format("YYYY년 M월")} ${String(
+    [YEAR]: `${dayjs().format(FORMAT[YEAR])}`,
+    [MONTH]: `${dayjs().format(FORMAT[MONTH])}`,
+    [WEEK]: `${dayjs().format(FORMAT[MONTH])} ${String(
       weekOfMonth + (isStartFromSunday ? 1 : 0)
     )}주차`,
-    [DAY]: dayjs().format("YYYY년 M월 D일, HH시 mm분"),
+    [DAY]: dayjs().format(FORMAT[DAY]),
   };
 
   const getTodos = async () => {
     try {
-      const res = await api.get("/todos");
-      setTodos(res.data);
+      const res = await api.get(`/todos/${type}`);
+      if (type === WEEK) {
+        const weekdays = [
+          SUNDAY,
+          MONDAY,
+          TUESDAY,
+          WEDNESDAY,
+          THURSDAY,
+          FRIDAY,
+          SATURDAY,
+        ].map((el, i) => {
+          return {
+            date: dayjs().day(i).format(FORMAT[DAY]),
+            weekday: el,
+          };
+        });
+        const filteredWeekDays =
+          res.data && res.data.length > 0
+            ? res.data.filter((el: any) => {
+                return (
+                  weekdays.filter((ele) => {
+                    return ele.date === el.date;
+                  }).length > 0
+                );
+              })
+            : [];
+        if (filteredWeekDays.length > 0) {
+          setTodos(filteredWeekDays);
+        } else {
+          setTodos([]);
+        }
+      } else {
+        setTodos(res.data);
+      }
     } catch (err) {
       console.error("getTodos error", err);
       setTodos([]);
@@ -40,7 +86,7 @@ function TodoPage({ type, isStartFromSunday = true }: TodoPageProps) {
 
   useEffect(() => {
     getTodos();
-  }, []);
+  }, [type]);
 
   return (
     <CheckRow title={TITLE[type || DAY]} list={todos} setList={setTodos} />

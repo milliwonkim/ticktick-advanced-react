@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 import CheckIcon from "../assets/CheckIcon";
 import { CheckRowProps } from "../type";
+import Calendar from "./Calendar";
 
 function CheckRow({ title, list, setList }: CheckRowProps) {
   const handleClick = (id: string, isCompleted: boolean) => {
@@ -37,14 +38,25 @@ function CheckRow({ title, list, setList }: CheckRowProps) {
     }
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleCalendar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <Container>
-      {title}
+      <div onClick={handleCalendar}>{title}</div>
+      {isOpen ? <Calendar /> : null}
       {list &&
         list.length > 0 &&
         list.map((el, i) => {
           return (
-            <Box onClick={() => handleClick(el.id, el.completed)} key={i}>
+            <Box
+              subIndex={el.depth + 1}
+              onClick={() => handleClick(el.id, el.completed)}
+              key={i}
+            >
               <Label>
                 <div>
                   <Checkbox isCompleted={el.completed} id={el.id}>
@@ -60,42 +72,10 @@ function CheckRow({ title, list, setList }: CheckRowProps) {
                   onChange={handleChange}
                 />
               </Label>
+              <div style={{ fontSize: "12px" }}>{el.date}</div>
             </Box>
           );
         })}
-      {["", "", "", ""].map((el, i) => {
-        return (
-          <SubContainer subIndex={i + 1}>
-            {list &&
-              list.length > 0 &&
-              list.map((el, i) => {
-                return (
-                  <Box onClick={() => handleClick(el.id, el.completed)} key={i}>
-                    <Label>
-                      <div>
-                        <Checkbox isCompleted={el.completed} id={el.id}>
-                          {el.completed ? (
-                            <CheckIcon
-                              fill="#ffffff"
-                              width="16px"
-                              height="16px"
-                            />
-                          ) : null}
-                        </Checkbox>
-                      </div>
-                      <Input
-                        id={el.id}
-                        value={el.todo}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={handleChange}
-                      />
-                    </Label>
-                  </Box>
-                );
-              })}
-          </SubContainer>
-        );
-      })}
     </Container>
   );
 }
@@ -115,15 +95,18 @@ interface SubContainerProps {
 const SubContainer = styled.div<SubContainerProps>`
   display: flex;
   flex-direction: column;
-  padding-left: ${(props: SubContainerProps) =>
-    props ? 16 * props.subIndex : 0}px;
   gap: 8px;
 `;
 
 const Box = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
+  padding-left: ${(props: SubContainerProps) =>
+    props ? 16 * props.subIndex : 0}px;
   &:hover {
     background: #e2e2e2;
   }

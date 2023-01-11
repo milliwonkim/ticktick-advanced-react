@@ -1,10 +1,20 @@
 // src/mocks/handlers.js
 import { rest } from "msw";
-import { TODOS } from "./fixtures/fixture";
+import { DAY_TODO, MONTH_TODO, WEEK_TODO, YEAR_TODO } from "./fixtures/fixture";
+import { DAY, MONTH, WEEK, YEAR } from "../constants/word";
 
 export const handlers = [
-  rest.get("/todos", (req, res, ctx) => {
-    return res(ctx.json(TODOS));
+  rest.get(`/todos/${DAY}`, (req, res, ctx) => {
+    return res(ctx.json(DAY_TODO));
+  }),
+  rest.get(`/todos/${WEEK}`, (req, res, ctx) => {
+    return res(ctx.json(WEEK_TODO));
+  }),
+  rest.get(`/todos/${MONTH}`, (req, res, ctx) => {
+    return res(ctx.json(MONTH_TODO));
+  }),
+  rest.get(`/todos/${YEAR}`, (req, res, ctx) => {
+    return res(ctx.json(YEAR_TODO));
   }),
   rest.post("/login", (req, res, ctx) => {
     // Persist user's authentication in the session
